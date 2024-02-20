@@ -42,7 +42,7 @@ function getThreadIdForSending(price)
 
 function genPostText(price, brand, year, typeOfWheels, typeOfFuel, typeOfTransmission, rudderType, name, phoneNumber, username)
 {
-    return `Цена: <b>${price}</b>\nМарка: <b>${brand}</b>\nГод выпуска: <b>${year}</b>\nВедущие колеса: <b>${typeOfWheels}</b>\nТопливо: <b>${typeOfFuel}</b>\nКоробка передач: <b>${typeOfTransmission}</b>\nРуль: <b>${rudderType}</b>\nИмя: ${name}\nНомер телефона: <b>${phoneNumber}</b>\n${username ? `Телеграм: <b>@${username}</b>` : "" }`
+    return `Цена: <b>${price}</b>\nМарка: <b>${brand}</b>\nГод выпуска: <b>${year}</b>\nВедущие колеса: <b>${typeOfWheels}</b>\nТопливо: <b>${typeOfFuel}</b>\nКоробка передач: <b>${typeOfTransmission}</b>\nРуль: <b>${rudderType}</b>\nПродавец: ${name}\nНомер телефона: <b>${phoneNumber}</b>\n${username ? `Телеграм: <b>@${username}</b>` : "" }`
 }
 
 module.exports = { getPosts, addPost, getOldPosts, deleteOldPostsFromDb, getThreadIdForSending, genPostText }

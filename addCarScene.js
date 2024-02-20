@@ -71,7 +71,7 @@ module.exports = new Scenes.WizardScene("addCarScene",
         if (ctx?.callbackQuery?.data == "submitPhotoes")
         {
             if (ctx.scene.session.state.photoes.length == 0) return ctx.reply("Нужно добавить хотя бы одно фото").catch(err => console.log(err))
-            ctx.reply("Отправьте имя человека, который продает автомобиль").catch(err => console.log(err))
+            ctx.reply("Введите ваше имя").catch(err => console.log(err))
             return ctx.wizard.next()
         }
         if (ctx.scene.session.state.photoes.length == 9) return ctx.reply("Уже добавлено 9 фотографий, я не могу принять больше", {reply_markup: {inline_keyboard: [[{text: "Удалить все фотографии", callback_data: "clearPhotoes"}]]}}).catch(err => console.log(err))
@@ -87,16 +87,14 @@ module.exports = new Scenes.WizardScene("addCarScene",
         if (!ctx?.message?.text) return await ctx.reply("Дайте ответ текстом").catch(err => console.log(err))
         if (!/^((\+7|7|8)+([0-9]){10})$/.test(ctx.message.text)) return await ctx.reply("Некорректный номер телефона, он должен начинаться с 7, +7 или 8 и иметь полсе этого еще 10 цифр").catch(err => console.log(err))
         ctx.scene.session.state.phoneNumber = ctx.message.text
-        const { price, brand, year, typeOfFuel, typeOfTransmission, rudderType, photoes, name, phoneNumber } = ctx.scene.session.state
-        await sendAd(price, brand, year, typeOfFuel, typeOfTransmission, rudderType, photoes, name, phoneNumber, ctx.from.username)
+        await sendAd(ctx)
         await ctx.reply("Ваше объявление будет выглядеть вот так", { reply_markup: { inline_keyboard: [[{ text: "опубликовать", callback_data: "publish" }], [{ text: "отменить и начать заново", callback_data: "restartScene" }]]}})
         return ctx.wizard.next()
     },
     async ctx => {
         if (!["publish", "restartScene"].includes(ctx?.callbackQuery?.data)) return await ctx.reply("Выберите одну из кнопок")
         if (ctx.callbackQuery.data == "restartScene") return ctx.scene.reenter()
-        const { price, brand, year, typeOfFuel, typeOfTransmission, rudderType, photoes, name, phoneNumber } = ctx.scene.session.state
-        const messages = await sendAd(price, brand, year, typeOfFuel, typeOfTransmission, rudderType, photoes, name, phoneNumber, ctx.from.username)
+        const messages = await sendAd(ctx)
         addPost(moment().add(2, "months"), messages.map(message => message.message_id))
         await ctx.reply("Объявление успешно добавлено").catch(err => console.log(err))
         console.log(ctx.scene.session.state)
@@ -104,13 +102,14 @@ module.exports = new Scenes.WizardScene("addCarScene",
     }
 ) 
 
-async function sendAd(price, brand, year, typeOfFuel, typeOfTransmission, rudderType, photoes, name, phoneNumber, username)
+async function sendAd(ctx)
 {
+    const { price, brand, year, typeOfFuel, typeOfTransmission, rudderType, photoes, name, phoneNumber } = ctx.scene.session.state
     var mediagroup = []
     for (var i = 0; i < photoes.length; i++) {
         const media = { type: "photo", media: photoes[i] }
         if (i == 0) {
-            media.caption = genPostText(price, brand, year, typeOfFuel, typeOfTransmission, rudderType, name, phoneNumber, username)
+            media.caption = genPostText(price, brand, year, typeOfFuel, typeOfTransmission, rudderType, name, phoneNumber, ctx.from.username)
             media.parse_mode = "HTML"
         }
         mediagroup.push(media)
