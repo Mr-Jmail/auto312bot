@@ -16,9 +16,11 @@ bot.use(stage.middleware())
 bot.start(ctx => ctx.reply("Здравствуйте. Для добавления нового объявления вы можете использовать команду /addCar").catch(err => console.log(err)))
 
 bot.command("addCar", ctx => ctx.scene.enter("addCarScene"))
+    
+bot.on("photo", ctx => ctx.reply(ctx.message.photo[ctx.message.photo.length - 1].file_id.toString()))
 
-// cron.schedule("0 0 * * *", async function ()
-;(async function ()
+cron.schedule("0 0 * * *", async function ()
+// ;(async function ()
 {
     const postsToDelete = getOldPosts()
     for (var i = 0; i < postsToDelete.length; i++)
@@ -27,5 +29,6 @@ bot.command("addCar", ctx => ctx.scene.enter("addCarScene"))
     }
     deleteOldPostsFromDb()
 })
-()
+// ()
+
 bot.launch()

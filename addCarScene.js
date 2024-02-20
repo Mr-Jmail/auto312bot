@@ -8,7 +8,7 @@ const restartButton = { text: "заполнить заново", callback_data: 
 module.exports = new Scenes.WizardScene("addCarScene",
     async ctx => {
         ctx.scene.session.state = { price: 0, brand: "", year: "", typeOfWheels: "", typeOfFuel: "", typeOfTransmission: "", rudderType: "", photoes: [], name: "", phoneNumber: "" }
-        await ctx.replyWithPhoto("", { caption: "<b>Начинаем продажу машины</b>", parse_mode: "HTML" })
+        await ctx.replyWithPhoto("AgACAgIAAxkBAAICUmXUoNJ_wljfSf7Q74SOqUuNRWgXAAJD2zEbv46hSra7PhTesN-BAQADAgADeQADNAQ", { caption: "<b>Начинаем продажу машины</b>", parse_mode: "HTML" })
         await ctx.reply("Введите цену: 20 000 ❌, 20000 ✅").catch(err => console.log(err))
         return ctx.wizard.next()
     },
