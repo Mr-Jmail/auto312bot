@@ -6,19 +6,15 @@ const { souperGroupId } = require("./ids.json")
 const restartButton = { text: "заполнить заново", callback_data: "toStartScene" }
 
 module.exports = new Scenes.WizardScene("addCarScene",
-    ctx => {
-        ctx.scene.session.state = { price: 0, brand: "", year: "", typeOfFuel: "", typeOfTransmission: "", rudderType: "", photoes: [], name: "", phoneNumber: "" }
-        ctx.reply("Введите цену машины. Отправьте только одно число - цену. Не нужно использовать пробелы или другие символы. Т.е:\n20000 - правильно\n20 000 или 20.000 - не правильно", {reply_markup: {inline_keyboard: [[{text: "Отмена", callback_data: "cancelAdding"}]]}}).catch(err => console.log(err))
+    async ctx => {
+        ctx.scene.session.state = { price: 0, brand: "", year: "", typeOfWheels: "", typeOfFuel: "", typeOfTransmission: "", rudderType: "", photoes: [], name: "", phoneNumber: "" }
+        await ctx.replyWithPhoto("", { caption: "<b>Начинаем продажу машины</b>", parse_mode: "HTML" })
+        await ctx.reply("Введите цену: 20 000 ❌, 20000 ✅").catch(err => console.log(err))
         return ctx.wizard.next()
     },
     ctx => {
-        if (ctx?.callbackQuery?.data == "cancelAdding")
-        {
-            ctx.reply("Добавление нового объявление отменено").catch(err => console.log(err))
-            return ctx.scene.leave()
-        }
-        if (!ctx?.message?.text && ctx?.callbackQuery?.data != "toPreviousQuestion") return ctx.reply("Дайте ответ текстом").catch(err => console.log(err))
-        if (Number(ctx.message.text).toString() == "NaN" || ctx.message.text.includes(".")) return ctx.reply("Введите только одно число - цену. Не нужно использовать пробелы или другие символы. Т.е:\n20000 - правильно\n20 000 или 20.000 - не правильно").catch(err => console.log(err))
+        if (!ctx?.message?.text) return ctx.reply("Дайте ответ текстом").catch(err => console.log(err))
+        if (Number(ctx.message.text).toString() == "NaN" || ctx.message.text.includes(".")) return ctx.reply("Введите цену: 20 000 ❌, 20000 ✅").catch(err => console.log(err))
         ctx.scene.session.state.price = Number(ctx.message.text)
         ctx.reply("Введите марку машины", {reply_markup: {inline_keyboard: [[restartButton]]}}).catch(err => console.log(err))
         return ctx.wizard.next()
@@ -54,7 +50,7 @@ module.exports = new Scenes.WizardScene("addCarScene",
     ctx => {
         if (ctx?.callbackQuery?.data == "toStartScene") return ctx.scene.reenter()
         if (!["задние", "передние"].includes(ctx?.callbackQuery?.data)) return ctx.reply("Выберите одну из кнопок")
-        ctx.scene.session.state.year = ctx.callbackQuery.data
+        ctx.scene.session.state.typeOfWheels = ctx.callbackQuery.data
         ctx.reply("Какой у вас руль:", { reply_markup: { inline_keyboard: [[{ text: "левый", callback_data: "левый" }], [{ text: "правый", callback_data: "правый" }], [restartButton]]}}).catch(err => console.log(err))
         return ctx.wizard.next()
     },
@@ -92,23 +88,36 @@ module.exports = new Scenes.WizardScene("addCarScene",
         if (!/^((\+7|7|8)+([0-9]){10})$/.test(ctx.message.text)) return await ctx.reply("Некорректный номер телефона, он должен начинаться с 7, +7 или 8 и иметь полсе этого еще 10 цифр").catch(err => console.log(err))
         ctx.scene.session.state.phoneNumber = ctx.message.text
         const { price, brand, year, typeOfFuel, typeOfTransmission, rudderType, photoes, name, phoneNumber } = ctx.scene.session.state
-        var mediagroup = []
-        for (var i = 0; i < photoes.length; i++)
-        {
-            const media = { type: "photo", media: photoes[i] }
-            if (i == 0) {
-                media.caption = genPostText(price, brand, year, typeOfFuel, typeOfTransmission, rudderType, name, phoneNumber, ctx.from.username)
-                media.parse_mode = "HTML"
-            }
-            mediagroup.push(media)
-        }
-        const messages = await ctx.telegram.sendMediaGroup(souperGroupId, mediagroup, { message_thread_id: getThreadIdForSending(price) }).catch(err => console.log(err))
+        await sendAd(price, brand, year, typeOfFuel, typeOfTransmission, rudderType, photoes, name, phoneNumber, ctx.from.username)
+        await ctx.reply("Ваше объявление будет выглядеть вот так", { reply_markup: { inline_keyboard: [[{ text: "опубликовать", callback_data: "publish" }], [{ text: "отменить и начать заново", callback_data: "restartScene" }]]}})
+        return ctx.wizard.next()
+    },
+    async ctx => {
+        if (!["publish", "restartScene"].includes(ctx?.callbackQuery?.data)) return await ctx.reply("Выберите одну из кнопок")
+        if (ctx.callbackQuery.data == "restartScene") return ctx.scene.reenter()
+        const { price, brand, year, typeOfFuel, typeOfTransmission, rudderType, photoes, name, phoneNumber } = ctx.scene.session.state
+        const messages = await sendAd(price, brand, year, typeOfFuel, typeOfTransmission, rudderType, photoes, name, phoneNumber, ctx.from.username)
         addPost(moment().add(2, "months"), messages.map(message => message.message_id))
         await ctx.reply("Объявление успешно добавлено").catch(err => console.log(err))
         console.log(ctx.scene.session.state)
         ctx.scene.leave()
     }
 ) 
+
+async function sendAd(price, brand, year, typeOfFuel, typeOfTransmission, rudderType, photoes, name, phoneNumber, username)
+{
+    var mediagroup = []
+    for (var i = 0; i < photoes.length; i++) {
+        const media = { type: "photo", media: photoes[i] }
+        if (i == 0) {
+            media.caption = genPostText(price, brand, year, typeOfFuel, typeOfTransmission, rudderType, name, phoneNumber, username)
+            media.parse_mode = "HTML"
+        }
+        mediagroup.push(media)
+    }
+    const messages = await ctx.telegram.sendMediaGroup(souperGroupId, mediagroup, { message_thread_id: getThreadIdForSending(price) }).catch(err => console.log(err))
+    return messages
+}
 /*
 {
   price: 20000,
