@@ -3,8 +3,6 @@ const { genPostText, getThreadIdForSending, addPost } = require("./functions")
 const moment = require('moment');
 const { souperGroupId } = require("./ids.json")
 
-const restartButton = { text: "заполнить заново", callback_data: "toStartScene" }
-
 module.exports = new Scenes.WizardScene("addCarScene",
     async ctx => {
         ctx.scene.session.state = { price: 0, brand: "", year: "", typeOfWheels: "", typeOfFuel: "", typeOfTransmission: "", rudderType: "", photoes: [], name: "", phoneNumber: "" }
@@ -16,57 +14,50 @@ module.exports = new Scenes.WizardScene("addCarScene",
         if (!ctx?.message?.text) return ctx.reply("Дайте ответ текстом").catch(err => console.log(err))
         if (Number(ctx.message.text).toString() == "NaN" || ctx.message.text.includes(".")) return ctx.reply("Введите цену: 20 000 ❌, 20000 ✅").catch(err => console.log(err))
         ctx.scene.session.state.price = Number(ctx.message.text)
-        ctx.reply("Введите марку машины", {reply_markup: {inline_keyboard: [[restartButton]]}}).catch(err => console.log(err))
+        ctx.reply("Введите марку машины").catch(err => console.log(err))
         return ctx.wizard.next()
     },
     ctx => {
-        if (ctx?.callbackQuery?.data == "toStartScene") return ctx.scene.reenter()
         if (!ctx?.message?.text) return ctx.reply("Дайте ответ текстом")
         ctx.scene.session.state.brand = ctx.message.text
-        ctx.reply("Введите год выпуска", {reply_markup: {inline_keyboard: [[restartButton]]}}).catch(err => console.log(err))
+        ctx.reply("Введите год выпуска").catch(err => console.log(err))
         return ctx.wizard.next()
     },
     ctx => {
-        if (ctx?.callbackQuery?.data == "toStartScene") return ctx.scene.reenter()
         if (!ctx?.message?.text) return ctx.reply("Дайте ответ текстом").catch(err => console.log(err))
         ctx.scene.session.state.year = ctx.message.text
-        ctx.reply("Выберите тип топлива", {reply_markup: {inline_keyboard: [[{ text: "бензин", callback_data: "бензин" }], [{ text: "дизель", callback_data: "дизель" }], [{ text: "электичество", callback_data: "электичество" }], [restartButton]]}}).catch(err => console.log(err))
+        ctx.reply("Выберите тип топлива", {reply_markup: {inline_keyboard: [[{ text: "бензин", callback_data: "бензин" }], [{ text: "дизель", callback_data: "дизель" }], [{ text: "электичество", callback_data: "электичество" }]]}}).catch(err => console.log(err))
         return ctx.wizard.next()
     },
     ctx => {
-        if (ctx?.callbackQuery?.data == "toStartScene") return ctx.scene.reenter()
         if (!["бензин", "дизель", "электичество"].includes(ctx?.callbackQuery?.data)) return ctx.reply("Выберите одну из кнопок")
         ctx.scene.session.state.typeOfFuel = ctx.callbackQuery.data
-        ctx.reply("Какая коробка передач?", {reply_markup: {inline_keyboard: [[{ text: "механика", callback_data: "механика" }], [{ text: "автомат", callback_data: "автомат"}], [restartButton]]}}).catch(err => console.log(err))
+        ctx.reply("Какая коробка передач?", {reply_markup: {inline_keyboard: [[{ text: "механика", callback_data: "механика" }], [{ text: "автомат", callback_data: "автомат"}]]}}).catch(err => console.log(err))
         return ctx.wizard.next()
     },
     ctx => {
-        if (ctx?.callbackQuery?.data == "toStartScene") return ctx.scene.reenter()
         if (!["механика", "автомат"].includes(ctx?.callbackQuery?.data)) return ctx.reply("Выберите одну из кнопок").catch(err => console.log(err))
         ctx.scene.session.state.typeOfTransmission = ctx.callbackQuery.data
-        ctx.reply("Какие ведущие колеса?", {reply_markup: {inline_keyboard: [[{ text: "задние", callback_data: "задние" }], [{ text: "передние", callback_data: "передние" }], [restartButton]]}}).catch(err => console.log(err))
+        ctx.reply("Какие ведущие колеса?", {reply_markup: {inline_keyboard: [[{ text: "задние", callback_data: "задние" }], [{ text: "передние", callback_data: "передние" }]]}}).catch(err => console.log(err))
         return ctx.wizard.next()
     },
     ctx => {
-        if (ctx?.callbackQuery?.data == "toStartScene") return ctx.scene.reenter()
         if (!["задние", "передние"].includes(ctx?.callbackQuery?.data)) return ctx.reply("Выберите одну из кнопок")
         ctx.scene.session.state.typeOfWheels = ctx.callbackQuery.data
-        ctx.reply("Какой у вас руль:", { reply_markup: { inline_keyboard: [[{ text: "левый", callback_data: "левый" }], [{ text: "правый", callback_data: "правый" }], [restartButton]]}}).catch(err => console.log(err))
+        ctx.reply("Какой у вас руль:", { reply_markup: { inline_keyboard: [[{ text: "левый", callback_data: "левый" }], [{ text: "правый", callback_data: "правый" }]]}}).catch(err => console.log(err))
         return ctx.wizard.next()
     },
     ctx => {
-        if (ctx?.callbackQuery?.data == "toStartScene") return ctx.scene.reenter()
         if (!["левый", "правый"].includes(ctx?.callbackQuery?.data)) return ctx.reply("Выберите одну из кнопок").catch(err => console.log(err))
         ctx.scene.session.state.rudderType = ctx.callbackQuery.data
-        ctx.reply("Отправьте до 9 фотографий машины, когда отправите все нужные фотографии, нажмите кнопку ниже", { reply_markup: { inline_keyboard: [[{ text: "завершить прием фотографий", callback_data: "submitPhotoes" }], [restartButton]]}}).catch(err => console.log(err))
+        ctx.reply("Отправьте до 9 фотографий машины, когда отправите все нужные фотографии, нажмите кнопку ниже", { reply_markup: { inline_keyboard: [[{ text: "завершить прием фотографий", callback_data: "submitPhotoes" }]]}}).catch(err => console.log(err))
         return ctx.wizard.next()
     },
     ctx => {
-        if (ctx?.callbackQuery?.data == "toStartScene") return ctx.scene.reenter()
         if (ctx?.callbackQuery?.data == "clearPhotoes")
         {
             ctx.scene.session.state.photoes = []
-            return ctx.reply("Отправьте до 9 фотографий машины, когда отправите все нужные фотографии, нажмите кнопку ниже", { reply_markup: { inline_keyboard: [[{ text: "завершить прием фотографий", callback_data: "submitPhotoes" }], [restartButton]]}}).catch(err => console.log(err))
+            return ctx.reply("Отправьте до 9 фотографий машины, когда отправите все нужные фотографии, нажмите кнопку ниже", { reply_markup: { inline_keyboard: [[{ text: "завершить прием фотографий", callback_data: "submitPhotoes" }]]}}).catch(err => console.log(err))
         }
         if (ctx?.callbackQuery?.data == "submitPhotoes")
         {
@@ -92,8 +83,8 @@ module.exports = new Scenes.WizardScene("addCarScene",
         return ctx.wizard.next()
     },
     async ctx => {
-        if (!["publish", "restartScene"].includes(ctx?.callbackQuery?.data)) return await ctx.reply("Выберите одну из кнопок")
         if (ctx.callbackQuery.data == "restartScene") return ctx.scene.reenter()
+        if (ctx?.callbackQuery?.data != "restartScene") return await ctx.reply("Выберите одну из кнопок")
         const messages = await sendAd(ctx)
         addPost(moment().add(2, "months"), messages.map(message => message.message_id))
         await ctx.reply("Объявление успешно добавлено").catch(err => console.log(err))
