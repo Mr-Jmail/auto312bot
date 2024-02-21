@@ -102,7 +102,7 @@ module.exports = new Scenes.WizardScene("addCarScene",
 
 async function sendAd(ctx, chatId)
 {
-    const { price, brand, year, typeOfFuel, typeOfTransmission, rudderType, photoes, name, phoneNumber } = ctx.scene.session.state
+    const { price, brand, year, typeOfWheels, typeOfFuel, typeOfTransmission, rudderType, photoes, name, phoneNumber } = ctx.scene.session.state
     var mediagroup = []
     for (var i = 0; i < photoes.length; i++) {
         const media = { type: "photo", media: photoes[i] }
