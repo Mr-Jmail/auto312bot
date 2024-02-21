@@ -1,12 +1,11 @@
 const { Scenes } = require("telegraf")
-const { genPostText, getThreadIdForSending, addPost } = require("./functions")
+const { genPostText, addPost, getChannelIdForSending } = require("./functions")
 const moment = require('moment');
-const { souperGroupId } = require("./ids.json")
 
 module.exports = new Scenes.WizardScene("addCarScene",
     async ctx => {
         ctx.scene.session.state = { price: 0, brand: "", year: "", typeOfWheels: "", typeOfFuel: "", typeOfTransmission: "", rudderType: "", photoes: [], name: "", phoneNumber: "" }
-        await ctx.replyWithPhoto("AgACAgIAAxkBAAICUmXUoNJ_wljfSf7Q74SOqUuNRWgXAAJD2zEbv46hSra7PhTesN-BAQADAgADeQADNAQ", { caption: "<b>Начинаем продажу машины</b>", parse_mode: "HTML" })
+        // await ctx.replyWithPhoto("AgACAgIAAxkBAAICUmXUoNJ_wljfSf7Q74SOqUuNRWgXAAJD2zEbv46hSra7PhTesN-BAQADAgADeQADNAQ", { caption: "<b>Начинаем продажу машины</b>", parse_mode: "HTML" })
         await ctx.reply("Введите цену: 20 000 ❌, 20000 ✅").catch(err => console.log(err))
         return ctx.wizard.next()
     },
@@ -50,14 +49,14 @@ module.exports = new Scenes.WizardScene("addCarScene",
     ctx => {
         if (!["левый", "правый"].includes(ctx?.callbackQuery?.data)) return ctx.reply("Выберите одну из кнопок").catch(err => console.log(err))
         ctx.scene.session.state.rudderType = ctx.callbackQuery.data
-        ctx.reply("Отправьте до 9 фотографий машины, когда отправите все нужные фотографии, нажмите кнопку ниже", { reply_markup: { inline_keyboard: [[{ text: "завершить прием фотографий", callback_data: "submitPhotoes" }]]}}).catch(err => console.log(err))
+        ctx.reply("Отправьте до 9 фотографий машины").catch(err => console.log(err))
         return ctx.wizard.next()
     },
     ctx => {
         if (ctx?.callbackQuery?.data == "clearPhotoes")
         {
             ctx.scene.session.state.photoes = []
-            return ctx.reply("Отправьте до 9 фотографий машины, когда отправите все нужные фотографии, нажмите кнопку ниже", { reply_markup: { inline_keyboard: [[{ text: "завершить прием фотографий", callback_data: "submitPhotoes" }]]}}).catch(err => console.log(err))
+            return ctx.reply("Отправьте до 9 фотографий машины").catch(err => console.log(err))
         }
         if (ctx?.callbackQuery?.data == "submitPhotoes")
         {
@@ -65,8 +64,16 @@ module.exports = new Scenes.WizardScene("addCarScene",
             ctx.reply("Введите ваше имя").catch(err => console.log(err))
             return ctx.wizard.next()
         }
-        if (ctx.scene.session.state.photoes.length == 9) return ctx.reply("Уже добавлено 9 фотографий, я не могу принять больше", {reply_markup: {inline_keyboard: [[{text: "Удалить все фотографии", callback_data: "clearPhotoes"}]]}}).catch(err => console.log(err))
-        if (ctx?.message?.photo) ctx.scene.session.state.photoes.push(ctx.message.photo[ctx.message.photo.length - 1].file_id)
+        if (ctx.scene.session.state.photoes.length == 9) {
+            ctx.reply("Уже добавлено 9 фотографий, я не могу принять больше", { reply_markup: { inline_keyboard: [[{ text: "Удалить все фотографии", callback_data: "clearPhotoes" }]] } }).catch(err => console.log(err))
+            return resetTimer(ctx)
+        }
+        if (ctx?.message?.photo)
+        {
+            ctx.scene.session.state.photoes.push(ctx.message.photo[ctx.message.photo.length - 1].file_id)
+            resetTimer(ctx);
+            startTimer(ctx);
+        }
     },
     ctx => {
         if (!ctx?.message?.text) return ctx.reply("Дайте ответ текстом").catch(err => console.log(err))
@@ -78,36 +85,54 @@ module.exports = new Scenes.WizardScene("addCarScene",
         if (!ctx?.message?.text) return await ctx.reply("Дайте ответ текстом").catch(err => console.log(err))
         if (!/^((\+0|0)+([0-9]){9})$/.test(ctx.message.text)) return await ctx.reply("Некорректный номер телефона, он должен начинаться с 0 или +0 и иметь полсе этого еще 10 цифр").catch(err => console.log(err))
         ctx.scene.session.state.phoneNumber = ctx.message.text
-        await sendAd(ctx)
+        await sendAd(ctx, ctx.chat.id)
         await ctx.reply("Ваше объявление будет выглядеть вот так", { reply_markup: { inline_keyboard: [[{ text: "опубликовать", callback_data: "publish" }], [{ text: "отменить и начать заново", callback_data: "restartScene" }]]}})
         return ctx.wizard.next()
     },
     async ctx => {
+        if (!["restartScene", "publish"].includes(ctx?.callbackQuery?.data)) return await ctx.reply("Выберите одну из кнопок")
         if (ctx.callbackQuery.data == "restartScene") return ctx.scene.reenter()
-        if (ctx?.callbackQuery?.data != "restartScene") return await ctx.reply("Выберите одну из кнопок")
-        const messages = await sendAd(ctx)
-        addPost(moment().add(2, "months"), messages.map(message => message.message_id))
-        await ctx.reply("Объявление успешно добавлено").catch(err => console.log(err))
+        const messages = await sendAd(ctx, getChannelIdForSending(ctx.scene.session.state.price))
+        addPost(moment().add(2, "months"), messages.map(message => message.message_id), messages[0].chat.id)
+        await ctx.reply("Объявление размещено на 2 месяца. По истечении срока оно будет автоматически удалено").catch(err => console.log(err))
         console.log(ctx.scene.session.state)
         ctx.scene.leave()
     }
 ) 
 
-async function sendAd(ctx)
+async function sendAd(ctx, chatId)
 {
     const { price, brand, year, typeOfFuel, typeOfTransmission, rudderType, photoes, name, phoneNumber } = ctx.scene.session.state
     var mediagroup = []
     for (var i = 0; i < photoes.length; i++) {
         const media = { type: "photo", media: photoes[i] }
         if (i == 0) {
-            media.caption = genPostText(price, brand, year, typeOfFuel, typeOfTransmission, rudderType, name, phoneNumber, ctx.from.username)
+            media.caption = genPostText(price, brand, year, typeOfWheels, typeOfFuel, typeOfTransmission, rudderType, name, phoneNumber, ctx.from.username)
             media.parse_mode = "HTML"
         }
         mediagroup.push(media)
     }
-    const messages = await ctx.telegram.sendMediaGroup(souperGroupId, mediagroup, { message_thread_id: getThreadIdForSending(price) }).catch(err => console.log(err))
+    const messages = await ctx.telegram.sendMediaGroup(chatId ?? getChannelIdForSending(price), mediagroup).catch(err => console.log(err))
     return messages
 }
+
+function startTimer(ctx) {
+    ctx.scene.session.state.timer = setTimeout(async () => {
+        const reply = await ctx.reply("Если вы отправили все нужные фотографии, нажмите кнопку ниже. Если нет, то можете продолжить отправлять фотографии", { reply_markup: { inline_keyboard: [[{ text: "завершить прием фотографий", callback_data: "submitPhotoes" }]] } }).catch(err => console.log(err))
+        ctx.scene.session.state.submitPhotoesMessageId = reply.message_id
+    }, 2000);
+}
+
+// Функция для сброса таймера
+function resetTimer(ctx) {
+    clearTimeout(ctx.scene.session.state.timer);
+    if (ctx.scene.session.state.submitPhotoesMessageId) {
+        ctx.deleteMessage(ctx.scene.session.state.submitPhotoesMessageId).catch(err => console.log(err));
+        delete ctx.scene.session.state.submitPhotoesMessageId;
+    }
+
+}
+
 /*
 {
   price: 20000,

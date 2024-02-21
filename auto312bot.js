@@ -7,6 +7,7 @@ const { souperGroupId } = require("./ids.json")
 
 const addCarScene = require("./addCarScene")
 const { getOldPosts, deleteOldPostsFromDb } = require("./functions")
+const sendTopicsMessage = require("./sendTopicsMessage")
 
 const stage = new Scenes.Stage([addCarScene])
 
@@ -30,5 +31,7 @@ cron.schedule("0 0 * * *", async function ()
     deleteOldPostsFromDb()
 })
 // ()
+
+sendTopicsMessage(bot)
 
 bot.launch()
