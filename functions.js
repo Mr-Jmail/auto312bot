@@ -42,7 +42,7 @@ function getChannelIdForSending(price)
 
 function genPostText(price, brand, year, typeOfWheels, typeOfFuel, typeOfTransmission, rudderType, name, phoneNumber, username)
 {
-    return `Цена: <b>${price}</b>\nМарка: <b>${brand}</b>\nГод выпуска: <b>${year}</b>\nПривод: <b>${typeOfWheels}</b>\nТопливо: <b>${typeOfFuel}</b>\nКоробка: <b>${typeOfTransmission}</b>\nРуль: <b>${rudderType}</b>\n\nПродавец: ${name}\n📞: <b>${phoneNumber}</b>\n${username ? `<b>${username}</b> - телеграм` : ""}`
+    return `Цена: <b>${price}</b>\nМарка: <b>${brand}</b>\nГод выпуска: <b>${year}</b>\nПривод: <b>${typeOfWheels}</b>\nТопливо: <b>${typeOfFuel}</b>\nКоробка: <b>${typeOfTransmission}</b>\nРуль: <b>${rudderType}</b>\n\nПродавец: ${name}\nТелефон: <b>${phoneNumber}</b>\n${username ? `<b>${username}</b> - телеграм` : ""}`
 }
 
 module.exports = { getPosts, addPost, getOldPosts, deleteOldPostsFromDb, getChannelIdForSending, genPostText }
