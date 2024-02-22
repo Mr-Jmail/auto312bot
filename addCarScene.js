@@ -37,11 +37,11 @@ module.exports = new Scenes.WizardScene("addCarScene",
     ctx => {
         if (!["механика", "автомат"].includes(ctx?.callbackQuery?.data)) return ctx.reply("Выберите одну из кнопок").catch(err => console.log(err))
         ctx.scene.session.state.typeOfTransmission = ctx.callbackQuery.data
-        ctx.reply("Какие ведущие колеса?", {reply_markup: {inline_keyboard: [[{ text: "задние", callback_data: "задние" }], [{ text: "передние", callback_data: "передние" }]]}}).catch(err => console.log(err))
+        ctx.reply("Какой привод?", { reply_markup: { inline_keyboard: [[{ text: "задний", callback_data: "задний" }], [{ text: "передний", callback_data: "передний" }], [{ text: "полный", callback_data: "полный"}]]}}).catch(err => console.log(err))
         return ctx.wizard.next()
     },
     ctx => {
-        if (!["задние", "передние"].includes(ctx?.callbackQuery?.data)) return ctx.reply("Выберите одну из кнопок")
+        if (!["задний", "передний", "полный"].includes(ctx?.callbackQuery?.data)) return ctx.reply("Выберите одну из кнопок")
         ctx.scene.session.state.typeOfWheels = ctx.callbackQuery.data
         ctx.reply("Какой у вас руль:", { reply_markup: { inline_keyboard: [[{ text: "левый", callback_data: "левый" }], [{ text: "правый", callback_data: "правый" }]]}}).catch(err => console.log(err))
         return ctx.wizard.next()
@@ -83,7 +83,7 @@ module.exports = new Scenes.WizardScene("addCarScene",
     },
     async ctx => {
         if (!ctx?.message?.text) return await ctx.reply("Дайте ответ текстом").catch(err => console.log(err))
-        if (!/^((\+0|0)+([0-9]){9})$/.test(ctx.message.text)) return await ctx.reply("Некорректный номер телефона, он должен начинаться с 0 или +0 и иметь полсе этого еще 10 цифр").catch(err => console.log(err))
+        if (!/^0[0-9]{9})$/.test(ctx.message.text.replace(" ", "").replace("-", ""))) return await ctx.reply("Некорректный номер телефона, он должен начинаться с 0 или +0 и иметь полсе этого еще 9 цифр").catch(err => console.log(err))
         ctx.scene.session.state.phoneNumber = ctx.message.text
         await sendAd(ctx, ctx.chat.id)
         await ctx.reply("Ваше объявление будет выглядеть вот так", { reply_markup: { inline_keyboard: [[{ text: "опубликовать", callback_data: "publish" }], [{ text: "отменить и начать заново", callback_data: "restartScene" }]]}})
@@ -118,7 +118,7 @@ async function sendAd(ctx, chatId)
 
 function startTimer(ctx) {
     ctx.scene.session.state.timer = setTimeout(async () => {
-        const reply = await ctx.reply("Если вы отправили все нужные фотографии, нажмите кнопку ниже. Если нет, то можете продолжить отправлять фотографии", { reply_markup: { inline_keyboard: [[{ text: "завершить прием фотографий", callback_data: "submitPhotoes" }]] } }).catch(err => console.log(err))
+        const reply = await ctx.reply("Нажмите кнопку  ⬇️", { reply_markup: { inline_keyboard: [[{ text: "завершить прием фотографий", callback_data: "submitPhotoes" }]] } }).catch(err => console.log(err))
         ctx.scene.session.state.submitPhotoesMessageId = reply.message_id
     }, 2000);
 }
@@ -126,7 +126,8 @@ function startTimer(ctx) {
 // Функция для сброса таймера
 function resetTimer(ctx) {
     clearTimeout(ctx.scene.session.state.timer);
-    if (ctx.scene.session.state.submitPhotoesMessageId) {
+    if (ctx.scene.session.state.submitPhotoesMessageId)
+    {
         ctx.deleteMessage(ctx.scene.session.state.submitPhotoesMessageId).catch(err => console.log(err));
         delete ctx.scene.session.state.submitPhotoesMessageId;
     }
@@ -137,7 +138,7 @@ function resetTimer(ctx) {
 {
   price: 20000,
   brand: 'fsafs',
-  year: 'передние',
+  year: 'передний',
   typeOfFuel: 'бензин',
   typeOfTransmission: 'автомат',
   rudderType: 'левый',

@@ -32,6 +32,5 @@ cron.schedule("0 0 * * *", async function ()
 })
 // ()
 
-// sendTopicsMessage(bot)
 
 bot.launch()

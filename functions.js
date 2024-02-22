@@ -42,7 +42,32 @@ function getChannelIdForSending(price)
 
 function genPostText(price, brand, year, typeOfWheels, typeOfFuel, typeOfTransmission, rudderType, name, phoneNumber, username)
 {
-    return `Цена: <b>${price}</b>\nМарка: <b>${brand}</b>\nГод выпуска: <b>${year}</b>\nВедущие колеса: <b>${typeOfWheels}</b>\nТопливо: <b>${typeOfFuel}</b>\nКоробка передач: <b>${typeOfTransmission}</b>\nРуль: <b>${rudderType}</b>\nПродавец: ${name}\nНомер телефона: <b>${phoneNumber}</b>\n${username ? `Телеграм: <b>@${username}</b>` : "" }`
+    const keyMap = {
+        price: 'Цена',
+        brand: 'Марка',
+        year: 'Год выпуска',
+        typeOfWheels: 'Привод',
+        typeOfFuel: 'Топливо',
+        typeOfTransmission: 'Коробка',
+        rudderType: 'Руль',
+        phoneNumber: "📞",
+        username: "Телеграм"
+    };
+
+    var outputText = '';
+    for (var [key, value] of Object.entries({ price, brand, year, typeOfWheels, typeOfFuel, typeOfTransmission, rudderType, name, phoneNumber, username }))
+    {
+        var formattedKey = keyMap[key] || key;
+        if (key == "phoneNumber") outputText += "\n"
+        if (key == "username")
+        {
+            var _ = value
+            value = formattedKey
+            formattedKey = _
+        }
+        outputText += `${formattedKey}:`.padEnd(20) + `<b>${value}</b>\n`;
+    }
+    return outputText
 }
 
 module.exports = { getPosts, addPost, getOldPosts, deleteOldPostsFromDb, getChannelIdForSending, genPostText }
