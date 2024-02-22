@@ -86,7 +86,7 @@ module.exports = new Scenes.WizardScene("addCarScene",
         if (!ctx?.message?.text) return await ctx.reply("Дайте ответ текстом").catch(err => console.log(err))
         const phoneNumber = ctx.message.text.replace(/ /ig, "").replace(/-/ig, "")
         if (!/^0[0-9]{9}$/.test(phoneNumber)) return await ctx.reply("Некорректный номер телефона, он должен начинаться с 0 или +0 и иметь полсе этого еще 9 цифр").catch(err => console.log(err))
-        ctx.scene.session.state.phoneNumber = phoneNumber
+        ctx.scene.session.state.phoneNumber = phoneNumber.replace("0", "+996")
         await sendAd(ctx, ctx.chat.id)
         await ctx.reply("Ваше объявление будет выглядеть вот так", { reply_markup: { inline_keyboard: [[{ text: "опубликовать", callback_data: "publish" }], [{ text: "отменить и начать заново", callback_data: "restartScene" }]]}})
         return ctx.wizard.next()
