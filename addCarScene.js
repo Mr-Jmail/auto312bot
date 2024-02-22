@@ -1,7 +1,6 @@
 const { Scenes } = require("telegraf")
 const { genPostText, addPost, getChannelIdForSending } = require("./functions")
 const moment = require('moment');
-const { mainChannelId } = require("./ids.json")
 
 module.exports = new Scenes.WizardScene("addCarScene",
     async ctx => {
@@ -94,9 +93,9 @@ module.exports = new Scenes.WizardScene("addCarScene",
     async ctx => {
         if (!["restartScene", "publish"].includes(ctx?.callbackQuery?.data)) return await ctx.reply("Выберите одну из кнопок")
         if (ctx.callbackQuery.data == "restartScene") return ctx.scene.reenter()
-        const messages = await sendAd(ctx, getChannelIdForSending(ctx.scene.session.state.price))
+        // const messages = await sendAd(ctx, getChannelIdForSending(ctx.scene.session.state.price))
         addPost(moment().add(2, "months"), messages.map(message => message.message_id), messages[0].chat.id)
-        await ctx.reply("Объявление размещено на 2 месяца. По истечении срока, оно будет автоматически удалено", { reply_markup: { inline_keyboard: [[{ text: "➕ ещё одно", callback_data: "addCar" }], [{ text: "На главную", url: `t.me/c/${mainChannelId.toString().substring(3)}`}]]}}).catch(err => console.log(err))
+        await ctx.reply("Объявление размещено на 2 месяца. По истечении срока, оно будет автоматически удалено", { reply_markup: { inline_keyboard: [[{ text: "➕ ещё одно", callback_data: "addCar" }], [{ text: "На главную", url: `https://t.me/koleso_312`}]]}}).catch(err => console.log(err))
         console.log(ctx.scene.session.state)
         ctx.scene.leave()
     }
@@ -106,9 +105,11 @@ async function sendAd(ctx, chatId)
 {
     const { price, brand, year, typeOfWheels, typeOfFuel, typeOfTransmission, rudderType, photoes, name, phoneNumber } = ctx.scene.session.state
     var mediagroup = []
-    for (var i = 0; i < photoes.length; i++) {
+    for (var i = 0; i < photoes.length; i++)
+    {
         const media = { type: "photo", media: photoes[i] }
-        if (i == 0) {
+        if (i == 0)
+        {
             media.caption = genPostText(price, brand, year, typeOfWheels, typeOfFuel, typeOfTransmission, rudderType, name, phoneNumber, `@${ctx.from.username}`)
             media.parse_mode = "HTML"
         }
@@ -125,7 +126,6 @@ function startTimer(ctx) {
     }, 2000);
 }
 
-// Функция для сброса таймера
 function resetTimer(ctx) {
     clearTimeout(ctx.scene.session.state.timer);
     if (ctx.scene.session.state.submitPhotoesMessageId)
