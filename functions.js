@@ -9,10 +9,10 @@ function getPosts()
     return posts
 }
 
-function addPost(dateToDelete, message_ids = [])
+function addPost(dateToDelete, message_ids = [], chatId)
 {
     const posts = getPosts()
-    posts.push({ dateToDelete, message_ids })
+    posts.push({ dateToDelete, message_ids, chatId })
     fs.writeFileSync(postsFilePath, JSON.stringify(posts, null, 4), "utf-8")
 }
 
@@ -42,32 +42,7 @@ function getChannelIdForSending(price)
 
 function genPostText(price, brand, year, typeOfWheels, typeOfFuel, typeOfTransmission, rudderType, name, phoneNumber, username)
 {
-    const keyMap = {
-        price: 'Цена',
-        brand: 'Марка',
-        year: 'Год выпуска',
-        typeOfWheels: 'Привод',
-        typeOfFuel: 'Топливо',
-        typeOfTransmission: 'Коробка',
-        rudderType: 'Руль',
-        phoneNumber: "📞",
-        username: "Телеграм"
-    };
-
-    var outputText = '';
-    for (var [key, value] of Object.entries({ price, brand, year, typeOfWheels, typeOfFuel, typeOfTransmission, rudderType, name, phoneNumber, username }))
-    {
-        var formattedKey = keyMap[key] || key;
-        if (key == "phoneNumber") outputText += "\n"
-        if (key == "username")
-        {
-            var _ = value
-            value = formattedKey
-            formattedKey = _
-        }
-        outputText += `${formattedKey}:`.padEnd(20) + `<b>${value}</b>\n`;
-    }
-    return outputText
+    return `Цена: <b>${price}</b>\nМарка: <b>${brand}</b>\nГод выпуска: <b>${year}</b>\nПривод: <b>${typeOfWheels}</b>\nТопливо: <b>${typeOfFuel}</b>\nКоробка: <b>${typeOfTransmission}</b>\nРуль: <b>${rudderType}</b>\n\nПродавец: ${name}\n📞: <b>${phoneNumber}</b>\n${username ? `<b>${username}</b> - телеграм` : ""}`
 }
 
 module.exports = { getPosts, addPost, getOldPosts, deleteOldPostsFromDb, getChannelIdForSending, genPostText }
