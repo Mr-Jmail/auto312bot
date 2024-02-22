@@ -49,14 +49,14 @@ module.exports = new Scenes.WizardScene("addCarScene",
     ctx => {
         if (!["левый", "правый"].includes(ctx?.callbackQuery?.data)) return ctx.reply("Выберите одну из кнопок").catch(err => console.log(err))
         ctx.scene.session.state.rudderType = ctx.callbackQuery.data
-        ctx.reply("Отправьте до 9 фотографий машины").catch(err => console.log(err))
+        ctx.reply("Отправьте до 9 фото машины 📎⬇️").catch(err => console.log(err))
         return ctx.wizard.next()
     },
     ctx => {
         if (ctx?.callbackQuery?.data == "clearPhotoes")
         {
             ctx.scene.session.state.photoes = []
-            return ctx.reply("Отправьте до 9 фотографий машины").catch(err => console.log(err))
+            return ctx.reply("Отправьте до 9 фото машины 📎⬇️").catch(err => console.log(err))
         }
         if (ctx?.callbackQuery?.data == "submitPhotoes")
         {
