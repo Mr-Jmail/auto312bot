@@ -7,7 +7,6 @@ const { souperGroupId } = require("./ids.json")
 
 const addCarScene = require("./addCarScene")
 const { getOldPosts, deleteOldPostsFromDb } = require("./functions")
-const sendTopicsMessage = require("./sendTopicsMessage")
 
 const stage = new Scenes.Stage([addCarScene])
 
