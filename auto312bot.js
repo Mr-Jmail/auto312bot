@@ -15,6 +15,8 @@ bot.use(stage.middleware())
 bot.start(ctx => ctx.reply("Здравствуйте. Для добавления нового объявления вы можете использовать команду /addCar").catch(err => console.log(err)))
 
 bot.command("addCar", ctx => ctx.scene.enter("addCarScene"))
+
+bot.action("addCar", ctx => ctx.scene.enter("addCarScene"))
     
 bot.on("photo", ctx => ctx.reply(ctx.message.photo[ctx.message.photo.length - 1].file_id.toString()))
 

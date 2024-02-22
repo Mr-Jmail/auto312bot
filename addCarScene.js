@@ -1,6 +1,7 @@
 const { Scenes } = require("telegraf")
 const { genPostText, addPost, getChannelIdForSending } = require("./functions")
 const moment = require('moment');
+const { mainChannelId } = require("./ids.json")
 
 module.exports = new Scenes.WizardScene("addCarScene",
     async ctx => {
@@ -95,7 +96,7 @@ module.exports = new Scenes.WizardScene("addCarScene",
         if (ctx.callbackQuery.data == "restartScene") return ctx.scene.reenter()
         const messages = await sendAd(ctx, getChannelIdForSending(ctx.scene.session.state.price))
         addPost(moment().add(2, "months"), messages.map(message => message.message_id), messages[0].chat.id)
-        await ctx.reply("Объявление размещено на 2 месяца. По истечении срока оно будет автоматически удалено").catch(err => console.log(err))
+        await ctx.reply("Объявление размещено на 2 месяца. По истечении срока, оно будет автоматически удалено", { reply_markup: { inline_keyboard: [[{ text: "➕ ещё одно", callback_data: "addCar" }], [{ text: "На главную", url: `t.me/c/${mainChannelId.toString().substring(3)}`}]]}}).catch(err => console.log(err))
         console.log(ctx.scene.session.state)
         ctx.scene.leave()
     }
