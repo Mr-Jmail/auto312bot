@@ -99,9 +99,9 @@ module.exports = new Scenes.WizardScene("addCarScene",
         addPost(moment().add(2, "months"), messages.map(message => message.message_id), messages[0].chat.id)
         await ctx.reply("Объявление размещено на 2 месяца. По истечении срока, оно будет автоматически удалено", { reply_markup: { inline_keyboard: [[{ text: "➕ ещё одно", callback_data: "addCar" }], [{ text: "На главную", url: `https://t.me/koleso_312`}]]}}).catch(err => console.log(err))
         console.log(ctx.scene.session.state)
-        var topicsMessage = await sendTopicsMessage(chatToSend)
         const messageIdToDelete = (getTopicsMessages())[chatToSend]
-        if(messageIdToDelete) ctx.telegram.deleteMessage(chatToSend, messageIdToDelete)
+        if(messageIdToDelete) await ctx.telegram.deleteMessage(chatToSend, messageIdToDelete)
+        var topicsMessage = await sendTopicsMessage(chatToSend)
         addTopicsMessageToBd(topicsMessage.chat.id, topicsMessage.message_id)
         ctx.scene.leave()
     }
