@@ -6,6 +6,8 @@ const bot = new Telegraf(process.env.botToken)
 
 const addCarScene = require("./addCarScene")
 const { getOldPosts, deleteOldPostsFromDb } = require("./functions")
+const sendTopicsMessage = require("./sendTopicsMessage")
+const { mainChannelId } = require("./ids.json")
 
 const stage = new Scenes.Stage([addCarScene])
 
@@ -13,6 +15,11 @@ bot.use(session())
 bot.use(stage.middleware())
 
 bot.start(ctx => ctx.reply("Здравствуйте. Для добавления нового объявления вы можете использовать команду /addCar").catch(err => console.log(err)))
+
+bot.command("sendButtons", async ctx => {
+    await sendTopicsMessage(mainChannelId)
+    await ctx.reply("Кнопки отправлены в главный чат")
+})
 
 bot.command("addCar", ctx => ctx.scene.enter("addCarScene"))
 
