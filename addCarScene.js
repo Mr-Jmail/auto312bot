@@ -6,7 +6,7 @@ const sendTopicsMessage = require("./sendTopicsMessage");
 module.exports = new Scenes.WizardScene("addCarScene",
     async ctx => {
         ctx.scene.session.state = { price: 0, brand: "", year: "", typeOfWheels: "", typeOfFuel: "", typeOfTransmission: "", rudderType: "", photoes: [], name: "", phoneNumber: "" }
-        await ctx.replyWithPhoto("AgACAgIAAxkBAAICUmXUoNJ_wljfSf7Q74SOqUuNRWgXAAJD2zEbv46hSra7PhTesN-BAQADAgADeQADNAQ", { caption: "<b>Начинаем продажу машины</b>", parse_mode: "HTML" })
+        await ctx.replyWithPhoto("AgACAgIAAxkBAAICUmXUoNJ_wljfSf7Q74SOqUuNRWgXAAJD2zEbv46hSra7PhTesN-BAQADAgADeQADNAQ", { caption: "<b>Начинаем продажу машины</b>", parse_mode: "HTML" }).catch(err => console.log(err))
         await ctx.reply("Введите цену: 20 000 ❌, 20000 ✅").catch(err => console.log(err))
         return ctx.wizard.next()
     },
@@ -18,7 +18,7 @@ module.exports = new Scenes.WizardScene("addCarScene",
         return ctx.wizard.next()
     },
     ctx => {
-        if (!ctx?.message?.text) return ctx.reply("Дайте ответ текстом")
+        if (!ctx?.message?.text) return ctx.reply("Дайте ответ текстом").catch(err => console.log(err))
         ctx.scene.session.state.brand = ctx.message.text
         ctx.reply("Введите год выпуска").catch(err => console.log(err))
         return ctx.wizard.next()
@@ -30,7 +30,7 @@ module.exports = new Scenes.WizardScene("addCarScene",
         return ctx.wizard.next()
     },
     ctx => {
-        if (!["бензин", "дизель", "электичество"].includes(ctx?.callbackQuery?.data)) return ctx.reply("Выберите одну из кнопок")
+        if (!["бензин", "дизель", "электичество"].includes(ctx?.callbackQuery?.data)) return ctx.reply("Выберите одну из кнопок").catch(err => console.log(err))
         ctx.scene.session.state.typeOfFuel = ctx.callbackQuery.data
         ctx.reply("Какая коробка передач?", {reply_markup: {inline_keyboard: [[{ text: "механика", callback_data: "механика" }], [{ text: "автомат", callback_data: "автомат"}]]}}).catch(err => console.log(err))
         return ctx.wizard.next()
@@ -42,7 +42,7 @@ module.exports = new Scenes.WizardScene("addCarScene",
         return ctx.wizard.next()
     },
     ctx => {
-        if (!["задний", "передний", "полный"].includes(ctx?.callbackQuery?.data)) return ctx.reply("Выберите одну из кнопок")
+        if (!["задний", "передний", "полный"].includes(ctx?.callbackQuery?.data)) return ctx.reply("Выберите одну из кнопок").catch(err => console.log(err))
         ctx.scene.session.state.typeOfWheels = ctx.callbackQuery.data
         ctx.reply("Какой у вас руль:", { reply_markup: { inline_keyboard: [[{ text: "левый", callback_data: "левый" }], [{ text: "правый", callback_data: "правый" }]]}}).catch(err => console.log(err))
         return ctx.wizard.next()
@@ -87,21 +87,21 @@ module.exports = new Scenes.WizardScene("addCarScene",
         const phoneNumber = ctx.message.text.replace(/ /ig, "").replace(/-/ig, "")
         if (!/^0[0-9]{9}$/.test(phoneNumber)) return await ctx.reply("Некорректный номер телефона, он должен начинаться с 0 и иметь полсе этого еще 9 цифр").catch(err => console.log(err))
         ctx.scene.session.state.phoneNumber = phoneNumber.replace("0", "+996")
-        await sendAd(ctx, ctx.chat.id)
+        await sendAd(ctx, ctx.chat.id).catch(err => console.log(err))
         await ctx.reply("Ваше объявление будет выглядеть вот так", { reply_markup: { inline_keyboard: [[{ text: "опубликовать", callback_data: "publish" }], [{ text: "отменить и начать заново", callback_data: "restartScene" }]]}})
         return ctx.wizard.next()
     },
     async ctx => {
-        if (!["restartScene", "publish"].includes(ctx?.callbackQuery?.data)) return await ctx.reply("Выберите одну из кнопок")
+        if (!["restartScene", "publish"].includes(ctx?.callbackQuery?.data)) return await ctx.reply("Выберите одну из кнопок").catch(err => console.log(err))
         if (ctx.callbackQuery.data == "restartScene") return ctx.scene.reenter()
+        console.log(ctx.scene.session.state)
         const chatToSend = getChannelIdForSending(ctx.scene.session.state.price)
-        const messages = await sendAd(ctx, chatToSend)
+        const messages = await sendAd(ctx, chatToSend).catch(err => console.log(err))
         addPost(moment().add(2, "months"), messages.map(message => message.message_id), messages[0].chat.id)
         await ctx.reply("Объявление размещено на 2 месяца. По истечении срока, оно будет автоматически удалено", { reply_markup: { inline_keyboard: [[{ text: "➕ ещё одно", callback_data: "addCar" }], [{ text: "На главную", url: `https://t.me/koleso_312`}]]}}).catch(err => console.log(err))
-        console.log(ctx.scene.session.state)
         const messageIdToDelete = (getTopicsMessages())[chatToSend]
-        if(messageIdToDelete) await ctx.telegram.deleteMessage(chatToSend, messageIdToDelete)
-        var topicsMessage = await sendTopicsMessage(chatToSend)
+        if(messageIdToDelete) await ctx.telegram.deleteMessage(chatToSend, messageIdToDelete).catch(err => console.log(err))
+        var topicsMessage = await sendTopicsMessage(chatToSend).catch(err => console.log(err))
         addTopicsMessageToBd(topicsMessage.chat.id, topicsMessage.message_id)
         ctx.scene.leave()
     }

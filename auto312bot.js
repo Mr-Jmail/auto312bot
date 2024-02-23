@@ -18,7 +18,7 @@ bot.command("addCar", ctx => ctx.scene.enter("addCarScene"))
 
 bot.action("addCar", ctx => ctx.scene.enter("addCarScene"))
     
-bot.on("photo", ctx => ctx.reply(ctx.message.photo[ctx.message.photo.length - 1].file_id.toString()))
+bot.on("photo", ctx => ctx.reply(ctx.message.photo[ctx.message.photo.length - 1].file_id.toString()).catch(err => console.log(err)))
 
 cron.schedule("0 0 * * *", async function ()
 // ;(async function ()
