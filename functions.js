@@ -1,6 +1,7 @@
 const path = require("path")
 const fs = require("fs")
 const postsFilePath = path.join(__dirname, "posts.json")
+const topicsMessagesFilePath = path.join(__dirname, "lastTopicsMessage.json")
 const moment = require("moment")
 
 function getPosts() 
@@ -45,4 +46,16 @@ function genPostText(price, brand, year, typeOfWheels, typeOfFuel, typeOfTransmi
     return `Цена: <b>${price}</b>\nМарка: <b>${brand}</b>\nГод выпуска: <b>${year}</b>\nПривод: <b>${typeOfWheels}</b>\nТопливо: <b>${typeOfFuel}</b>\nКоробка: <b>${typeOfTransmission}</b>\nРуль: <b>${rudderType}</b>\n\nПродавец: ${name}\nТелефон: <b>${phoneNumber}</b>\n${username ? `<b>${username}</b> - телеграм` : ""}`
 }
 
-module.exports = { getPosts, addPost, getOldPosts, deleteOldPostsFromDb, getChannelIdForSending, genPostText }
+function getTopicsMessages()
+{
+    return JSON.parse(fs.readFileSync(topicsMessagesFilePath, "utf-8"))
+}
+
+function addTopicsMessageToBd(chatId, messageId) 
+{
+    const topicsMessages = getTopicsMessages()
+    topicsMessages[chatId] = messageId
+    fs.writeFileSync(topicsMessagesFilePath, JSON.stringify(topicsMessages, null, 4), "utf-8")
+}
+
+module.exports = { getPosts, addPost, getOldPosts, deleteOldPostsFromDb, getChannelIdForSending, genPostText, getTopicsMessages, addTopicsMessageToBd }

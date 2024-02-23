@@ -1,6 +1,7 @@
 const { Scenes } = require("telegraf")
-const { genPostText, addPost, getChannelIdForSending } = require("./functions")
+const { genPostText, addPost, getChannelIdForSending, addTopicsMessageToBd, getTopicsMessages } = require("./functions")
 const moment = require('moment');
+const sendTopicsMessage = require("./sendTopicsMessage");
 
 module.exports = new Scenes.WizardScene("addCarScene",
     async ctx => {
@@ -93,10 +94,15 @@ module.exports = new Scenes.WizardScene("addCarScene",
     async ctx => {
         if (!["restartScene", "publish"].includes(ctx?.callbackQuery?.data)) return await ctx.reply("Выберите одну из кнопок")
         if (ctx.callbackQuery.data == "restartScene") return ctx.scene.reenter()
-        const messages = await sendAd(ctx, getChannelIdForSending(ctx.scene.session.state.price))
+        const chatToSend = getChannelIdForSending(ctx.scene.session.state.price)
+        const messages = await sendAd(ctx, chatToSend)
         addPost(moment().add(2, "months"), messages.map(message => message.message_id), messages[0].chat.id)
         await ctx.reply("Объявление размещено на 2 месяца. По истечении срока, оно будет автоматически удалено", { reply_markup: { inline_keyboard: [[{ text: "➕ ещё одно", callback_data: "addCar" }], [{ text: "На главную", url: `https://t.me/koleso_312`}]]}}).catch(err => console.log(err))
         console.log(ctx.scene.session.state)
+        var topicsMessage = await sendTopicsMessage(chatToSend)
+        const messageIdToDelete = (getTopicsMessages())[chatToSend]
+        if(messageIdToDelete) ctx.telegram.deleteMessage(chatToSend, messageIdToDelete)
+        addTopicsMessageToBd(topicsMessage.chat.id, topicsMessage.message_id)
         ctx.scene.leave()
     }
 ) 
